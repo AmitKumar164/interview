@@ -39,3 +39,4 @@ build/
 pdf_reader.py
 
 .env
+test_settings.py
