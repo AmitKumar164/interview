@@ -664,6 +664,11 @@ class ConnectifyConsumer(AsyncWebsocketConsumer):
         online.pop(self.user.username, None)
         cache.set(key, online, timeout=60 * 60 * 10)
 
+    async def chat_message(self, event):
+        print("[CHAT DELIVERY]", event)
+
+        await self.send(text_data=json.dumps(event["message"]))
+
     async def receive(self, text_data=None, bytes_data=None):
         print("\n\n========== MESSAGE RECEIVED ==========")
         if not text_data:
@@ -731,6 +736,11 @@ class ConnectifyConsumer(AsyncWebsocketConsumer):
         if action == "get_result":
             print("[ACTION] get_result triggered")
             await self.handle_get_result()
+            return
+        
+        if action == "chat_message":
+            print("[CHAT] Message Received")
+            await self._handle_chat_message(data)
             return
 
 
@@ -1204,4 +1214,31 @@ class ConnectifyConsumer(AsyncWebsocketConsumer):
             "new_interviewer": correct_interviewer,
             "session_id": self.session_id
         }))
+
+    async def _handle_chat_message(self, data):
+        message = data.get("message", "").strip()
+
+        if not message:
+            print("[CHAT ERROR] Empty message")
+            return
+
+        print(f"[CHAT] {self.user.username}: {message}")
+
+        payload = {
+            "type": "chat_message",
+            "message": {
+                "action": "chat_message",
+                "sender": self.user.username,
+                "role": self.profile_type,
+                "message": message,
+                "session_id": self.session_id
+            }
+        }
+
+        # Send chat message to entire interview room (interviewer + interviewee)
+        await self.channel_layer.group_send(
+            self.room_group_name,
+            payload
+        )
+
 

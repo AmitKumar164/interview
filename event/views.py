@@ -872,7 +872,9 @@ class FetchEventRegisteredUser(APIView):
             event_map[event_id]["users"].append({
                 "full_name": f"{reg.user.user.first_name} {reg.user.user.last_name}",
                 "username": reg.user.user.username,
-                "user_profile_id": reg.user.id
+                "user_profile_id": reg.user.id,
+                "shortlisted": reg.shortlisted,
+                "selected": reg.selected
             })
 
         return JsonResponse({"data": list(event_map.values())}, status=200)

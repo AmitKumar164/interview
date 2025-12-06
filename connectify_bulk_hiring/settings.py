@@ -12,7 +12,10 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 from datetime import timedelta
+import os
+from dotenv import load_dotenv
 
+load_dotenv()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -21,10 +24,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-(*a3qd1lsol2j-%5w3q=0!n9seffphjx3e*pe1)#p$@&r2abq)'
+SECRET_KEY = os.getenv("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv("DEBUG")
 
 ALLOWED_HOSTS = ['*']
 
@@ -175,21 +178,21 @@ SIMPLE_JWT = {
     "AUTH_HEADER_TYPES": ("Bearer",),
 }
 
-***REMOVED***
-***REMOVED***
-AWS_REGION="ap-south-1"
-AWS_S3_BUCKET_NAME="linkedin-images-connectify"
+AWS_ACCESS_KEY_ID=os.getenv("AWS_ACCESS_KEY_ID")
+AWS_SECRET_ACCESS_KEY=os.getenv("AWS_SECRET_ACCESS_KEY")
+AWS_REGION=os.getenv("AWS_REGION")
+AWS_S3_BUCKET_NAME=os.getenv("AWS_S3_BUCKET_NAME")
 
-ZOOM_SDK_CLIENT_ID='***REMOVED***'
-ZOOM_SDK_CLIENT_SECRET='***REMOVED***'
-ZOOM_CLIENT_ID='2iJ1fRWwQFGfOSdNKfCW3w'
-ZOOM_CLIENT_SECRET='***REMOVED***'
-ZOOM_ACCOUNT_ID='83lQqha9TuyAPIOoLQ8CZw'
+ZOOM_SDK_CLIENT_ID=os.getenv("ZOOM_SDK_CLIENT_ID")
+ZOOM_SDK_CLIENT_SECRET=os.getenv("ZOOM_SDK_CLIENT_SECRET")
+ZOOM_CLIENT_ID=os.getenv("ZOOM_CLIENT_ID")
+ZOOM_CLIENT_SECRET=os.getenv("ZOOM_CLIENT_SECRET")
+ZOOM_ACCOUNT_ID=os.getenv("ZOOM_ACCOUNT_ID")
 
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
+TWILIO_ACCOUNT_SID=os.getenv("TWILIO_ACCOUNT_SID")
+TWILIO_AUTH_TOKEN=os.getenv("TWILIO_AUTH_TOKEN")
+TWILIO_API_KEY=os.getenv("TWILIO_API_KEY")
+TWILIO_API_SECRET=os.getenv("TWILIO_API_SECRET")
 TURN_LIMIT = 1000
 TURN_EXPIRY = 600  # 10 mins
 
@@ -198,11 +201,9 @@ CORS_ALLOW_ALL_ORIGINS = True
 
 SMTP_HOST = "smtp.gmail.com"
 SMTP_PORT = 587
-SMTP_USER = "amtsinh164@gmail.com"
-SMTP_PASSWORD = "csul mmfc ypvz dtyh"
+SMTP_USER = os.getenv("SMTP_USER")
+SMTP_PASSWORD = os.getenv("SMTP_PASSWORD")
 
-FRONTEND_URL = "http://localhost:3000"
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
-OPENAI_API_KEY = "***REMOVED******REMOVED******REMOVED******REMOVED******REMOVED***"
-
-FRONTEND_URL = "http://10.152.38.80:5176"
+FRONTEND_URL = os.getenv("FRONTEND_URL")
