@@ -74,7 +74,7 @@ Default DB settings in `connectify_bulk_hiring/settings.py` expect:
 ---
 
 ## Environment Configuration
-For production, move all secrets out of `connectify_bulk_hiring/settings.py` into environment variables or a secrets manager. The code currently contains hard-coded credentials for convenience; you must rotate them and configure via environment variables before deploying.
+This project already loads environment variables via python-dotenv (`load_dotenv()`) and `os.getenv()` in `connectify_bulk_hiring/settings.py` for keys like `SECRET_KEY`, `OPENAI_API_KEY`, `AWS_*`, `ZOOM_*`, `TWILIO_*`, `SMTP_*`, and `FRONTEND_URL`. Database credentials in `DATABASES` are currently hard-coded for local dev; for production, move them to environment variables.
 
 Recommended variables (example):
 ```bash
@@ -128,7 +128,7 @@ SMTP_PASSWORD=app_password
 # Frontend URL (for email templates & deep links)
 FRONTEND_URL=http://localhost:3000
 ```
-Note: The current code reads values directly from settings constants. If you want to consume environment variables, add a small loader (e.g., `os.getenv` or `django-environ`) in `settings.py`.
+Note: To also externalize DB settings, set the `DB_*` vars above and update `DATABASES['default']` in `connectify_bulk_hiring/settings.py` to read from env.
 
 ---
 
@@ -142,6 +142,9 @@ pip install -r requirements.txt
 # Migrations (including django-celery-results tables)
 python manage.py migrate
 python manage.py migrate django_celery_results
+
+# Create cache table used by DatabaseCache (settings.CACHES)
+python manage.py createcachetable my_cache_table
 
 # (Optional) Create superuser
 python manage.py createsuperuser
@@ -227,6 +230,7 @@ Base path prefix from `connectify_bulk_hiring/urls.py`:
 - `GET /v1/application-count/` – Total applications
 - `GET /v1/user-event-data/` – User-specific event view
 - `PATCH /v1/modified-shortlisted` – Toggle shortlist flag
+- `POST /v1/generate-jd/` – Generate JD sections (about + responsibilities) with OpenAI
 - `GET /v1/all-selected-users/` – Final selected
 - `GET /v1/assessment-questions/` – Assessment questions
 - `GET /v1/zoom-joined-user/` – Who joined Zoom
@@ -311,10 +315,6 @@ Edit `EVENT_ID`, `PDF_FOLDER`, `OUTPUT_FOLDER` to suit your environment.
 - WebSocket closes with 4003/4004: username/token mismatch or mapping missing; verify JWT and `zoom-mapping` step.
 - Emails not sending: verify SMTP creds; for Gmail, enable App Passwords.
 - Twilio 401/403: verify `TWILIO_ACCOUNT_SID` and `TWILIO_AUTH_TOKEN`.
+- Cache error "relation \"my_cache_table\" does not exist": run `python manage.py createcachetable my_cache_table`.
 
 ---
-
-## License
-Proprietary (or add your preferred license).
-# interview
-Video Calling
