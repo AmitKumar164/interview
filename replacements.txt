@@ -1,0 +1,19 @@
+# Remove AWS Access Key ID pattern (AKIA...)
+regex:AWS_ACCESS_KEY_ID\s*=\s*["'][A-Z0-9]+["']
+AWS_ACCESS_KEY_ID = "***REMOVED***"
+
+# Remove AWS Secret Access Key
+regex:AWS_SECRET_ACCESS_KEY\s*=\s*["'][A-Za-z0-9/+=]+["']
+AWS_SECRET_ACCESS_KEY = "***REMOVED***"
+
+# Remove Twilio SID
+regex:TWILIO_ACCOUNT_SID\s*=\s*["'][A-Za-z0-9]+["']
+TWILIO_ACCOUNT_SID = "***REMOVED***"
+
+# Remove Twilio Auth Token
+regex:TWILIO_AUTH_TOKEN\s*=\s*["'][A-Za-z0-9]+["']
+TWILIO_AUTH_TOKEN = "***REMOVED***"
+
+# Remove OpenAI API key (starts with sk-)
+regex:OPENAI_API_KEY\s*=\s*["']sk-[A-Za-z0-9]+["']
+OPENAI_API_KEY = "***REMOVED***"

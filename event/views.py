@@ -14,7 +14,7 @@ from django.db.models import Count
 import json
 from django.db import transaction
 from openai import OpenAI
-from user_data.services.prompt_service import ***REMOVED***PT   # optional
+from user_data.services.prompt_service import GENERATE_ABOUT_AND_RESPONSIBILITIES_PROMPT   # optional
 from event.tasks import process_bulk_resumes_task, process_single_resume_task, fetch_only_ats_score_task
 from .serializers import ResumeProcessingTrackSerializer
 from django.db.models import Avg, Min, Sum
@@ -165,7 +165,7 @@ class EventView(APIView):
         if request.user.user_profile.user_type == "Hr":
             events = events.filter(created_by=request.user.user_profile).distinct()
         elif request.user.user_profile.user_type == "Interviewer":
-            events = events.filter(***REMOVED***=request.user.user_profile).distinct()
+            events = events.filter(rounds__interviewers__interviewer=request.user.user_profile).distinct()
         event_list = []
         for event in events:
             description = EventDescription.objects.filter(event=event).first()
@@ -1015,7 +1015,7 @@ class FetchEventDetail(APIView):
         # JOINED USERS (Grouped)
         # =============================
         joined_qs = IntervieweeJoin.objects.filter(event_id=event_id).select_related(
-            "user__user", "round", "***REMOVED***"
+            "user__user", "round", "interviewer_user__interviewer__user"
         )
 
         joined_users_dict = {}
@@ -1239,7 +1239,7 @@ class ApplicationCount(APIView):
         this_month_total_rejected = UserRegister.objects.filter(event__in=current_month_events, rejected=True).count()
         previous_month_total_rejected = UserRegister.objects.filter(event__in=previous_month_events, rejected=True).count()
         this_month_total_shortlisted = UserRegister.objects.filter(event__in=current_month_events, shortlisted=True).count()
-        ***REMOVED*** = UserRegister.objects.filter(event__in=previous_month_events, shortlisted=True).count()
+        previous_month_total_shortlisted = UserRegister.objects.filter(event__in=previous_month_events, shortlisted=True).count()
         this_month_total_rounds = current_month_events.aggregate(total_rounds=Sum("total_rounds")).get("total_rounds", 0)
         previous_month_total_rounds = previous_month_events.aggregate(total_rounds=Sum("total_rounds")).get("total_rounds", 0)        
 
@@ -1259,7 +1259,7 @@ class ApplicationCount(APIView):
             "this_month_total_rejected": this_month_total_rejected,
             "previous_month_total_rejected": previous_month_total_rejected,
             "this_month_total_shortlisted": this_month_total_shortlisted,
-            "***REMOVED***": ***REMOVED***,
+            "previous_month_total_shortlisted": previous_month_total_shortlisted,
             "this_month_total_rounds": this_month_total_rounds,
             "previous_month_total_rounds": previous_month_total_rounds if previous_month_total_rounds else 0,
         }, status=200)
@@ -1356,7 +1356,7 @@ class FetchUserEventData(APIView):
                 user=user_profile
             ).select_related(
                 "round__event",
-                "***REMOVED***",
+                "interviewer_user__interviewer__user",
                 "user__user"
             ).order_by("round__round_number")
 
@@ -1478,7 +1478,7 @@ class GenerateJDSections(APIView):
             Salary: {salary}
             """
 
-            final_prompt = ***REMOVED***PT + user_data
+            final_prompt = GENERATE_ABOUT_AND_RESPONSIBILITIES_PROMPT + user_data
 
             response = client.chat.completions.create(
                 model="gpt-4.1",

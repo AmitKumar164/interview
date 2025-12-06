@@ -645,7 +645,7 @@ class ConnectifyConsumer(AsyncWebsocketConsumer):
 
         if getattr(self, "profile_type", None) == "Interviewee":
             print("[DISCONNECT] Interviewee disconnect detected → handling queue logic")
-            await self.***REMOVED***()
+            await self._handle_disconnect_as_interviewee()
 
         print("========== DISCONNECT FINISHED ==========\n\n")
 
@@ -720,7 +720,7 @@ class ConnectifyConsumer(AsyncWebsocketConsumer):
 
             if self.profile_type == "Interviewee":
                 print("[LEAVE] Interviewee leaving → triggering disconnect handler")
-                await self.***REMOVED***()
+                await self._handle_disconnect_as_interviewee()
 
             elif self.profile_type == "Interviewer":
                 print("[LEAVE] Interviewer ending interview → handle complete")
@@ -898,7 +898,7 @@ class ConnectifyConsumer(AsyncWebsocketConsumer):
         )
 
         print("[REJECT] Triggering next candidate")
-        await self.***REMOVED***(interviewer)
+        await self._trigger_start_next_from_interviewer(interviewer)
 
         print("========== REJECT DONE ==========\n\n")
 
@@ -952,11 +952,11 @@ class ConnectifyConsumer(AsyncWebsocketConsumer):
         )
 
         print("[COMPLETE] Triggering next candidate")
-        await self.***REMOVED***(interviewer)
+        await self._trigger_start_next_from_interviewer(interviewer)
 
         print("========== COMPLETE DONE ==========\n\n")
 
-    async def ***REMOVED***(self, interviewer_username: str):
+    async def _trigger_start_next_from_interviewer(self, interviewer_username: str):
         print("\n\n========== INTERNAL TRIGGER START ==========")
         print(f"[TRIGGER] Interviewer = {interviewer_username}")
 
@@ -1000,7 +1000,7 @@ class ConnectifyConsumer(AsyncWebsocketConsumer):
 
         print("========== INTERNAL TRIGGER FINISHED ==========\n\n")
 
-    async def ***REMOVED***(self):
+    async def _handle_disconnect_as_interviewee(self):
         print("\n\n========== DISCONNECT QUEUE CHECK ==========")
         disconnected = self.user.username
         print(f"[DISCONNECT QUEUE] User = {disconnected}")
@@ -1048,7 +1048,7 @@ class ConnectifyConsumer(AsyncWebsocketConsumer):
                     await database_sync_to_async(cache.set)(cache_key, mapping)
 
                     # ✅ move queue ahead
-                    await self.***REMOVED***(interviewer)
+                    await self._trigger_start_next_from_interviewer(interviewer)
 
                 else:
                     print("[DISCONNECT QUEUE] Removing from middle of queue")

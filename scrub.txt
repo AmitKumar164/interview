@@ -1,0 +1,11 @@
+# remove any OpenAI sk- key
+regex:sk-[A-Za-z0-9]+
+REMOVED_OPENAI_KEY
+
+# remove Twilio keys
+regex:TWILIO_[A-Z_]+\s*=\s*["'][^"']+["']
+REMOVED_TWILIO_VALUE
+
+# remove any 32–40 length API-like tokens
+regex:[A-Za-z0-9_\-]{32,40}
+REMOVED_POSSIBLE_SECRET

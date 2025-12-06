@@ -1,4 +1,4 @@
-***REMOVED***PT = """
+GENERATE_ABOUT_AND_RESPONSIBILITIES_PROMPT = """
 You are an expert HR specialist.
 
 Your task: Based on the provided job details, generate:
