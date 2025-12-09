@@ -430,3 +430,27 @@ class SendEventUserMail(APIView):
 
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=500)
+
+class AddCompanyView(APIView):
+    def post(self, request):
+        try:
+            company_name = request.data.get("company_name")
+            if not company_name:
+                return JsonResponse({"error": "company_name is required"}, status=400)
+
+            company = Company.objects.create(name=company_name)
+            return JsonResponse({"message": "Company added successfully"}, status=201)
+
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)
+    
+    def get(self, request):
+        companies = Company.objects.all()
+        data = [
+            {
+                "id": company.id,
+                "name": company.name,
+            }
+            for company in companies
+        ]
+        return JsonResponse({"companies": data}, status=200)

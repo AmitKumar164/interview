@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import SignupView, SendOtpView, VerifyOtpView, UserDataView, FetchUserView, SendEventUserMail, RegisterInterviewer
+from .views import SignupView, SendOtpView, VerifyOtpView, UserDataView, FetchUserView, SendEventUserMail, RegisterInterviewer, AddCompanyView
 app_name = 'user_data'
 urlpatterns = [
     path('v1/signup/', SignupView.as_view(), name='signup'),
@@ -9,4 +9,5 @@ urlpatterns = [
     path("v1/fetch-user/", FetchUserView.as_view(), name="fetch-user"),
     path("v1/register-interviewer/", RegisterInterviewer.as_view(), name="register-interviewer"),
     path("v1/send-event-mail/", SendEventUserMail.as_view(), name="send-event-mail"),
+    path("v1/add-company/", AddCompanyView.as_view(), name="add-company"),
 ]
