@@ -534,15 +534,13 @@ def fetch_only_ats_score_task(self, instance_ids):
                 "ats": ats_score,
                 "shortlisted": instance.shortlisted
             })
-            print(1234)
             name = f"{instance.user.user.first_name} {instance.user.user.last_name}".strip()
             subject = f"Congratulations! You Are Shortlisted – {event.job_title}"
             body = interviewee_mail_body(event, name)
-            print(body)
 
-            track = ResumeProcessingTrack.objects.filter(
+            track, created = ResumeProcessingTrack.objects.get_or_create(
                 event=event, email=instance.user.user.email
-            ).order_by("-created_at").first()
+            )
 
             try:
                 send_professional_mail(
@@ -552,11 +550,11 @@ def fetch_only_ats_score_task(self, instance_ids):
                     company_name=event.created_by.company_name.name,
                 )
 
-                if track:
+                if track or created:
                     track.status = "USER_EXISTING"
                     track.mail_status = "SENT"
                     track.mail_sent_at = timezone.now()
-                    track.save(update_fields=["mail_status", "mail_sent_at"])
+                    track.save(update_fields=["mail_status", "mail_sent_at", "status"])
             except Exception as e:
                 if track:
                     track.status = "FAILED"
