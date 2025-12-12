@@ -26,4 +26,5 @@ urlpatterns = [
     path("v1/zoom-joined-user/", FetchZoomJoinedUser.as_view(), name="zoom-joined-user"),
     path("v1/resume-processing-track/", ResumeProcessingTrackAPI.as_view(), name="resume-processing-track"),
     path("v1/hr-user-chatting/", HRUserChattingAPI.as_view(), name="hr-user-chatting"),
+    path("v1/admin-user-data/", AdminUserData.as_view(), name="admin-user-data"),
 ]

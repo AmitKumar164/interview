@@ -1,6 +1,8 @@
 from django.http import JsonResponse
 from rest_framework.views import APIView
 from rest_framework.response import Response
+
+from user_data.models import Company
 from .models import *
 from event.utils.aws_utils import upload_base64_to_s3
 import jwt
@@ -10,7 +12,7 @@ import requests
 from connectify_bulk_hiring import settings
 from django.core.cache import cache
 from .serializers import *
-from django.db.models import Count
+from django.db.models import Count, Prefetch
 import json
 from django.db import transaction
 from openai import OpenAI
@@ -19,6 +21,7 @@ from event.tasks import process_bulk_resumes_task, process_single_resume_task, f
 from .serializers import ResumeProcessingTrackSerializer
 from django.db.models import Avg, Min, Sum
 from datetime import date, timedelta
+from user_data.serializers import CompanySerializer
 
 client = OpenAI(api_key=settings.OPENAI_API_KEY)
 
@@ -1419,6 +1422,9 @@ class FetchUserEventData(APIView):
             return JsonResponse({
                 "hr_events": event_list
             }, status=200)
+        
+        else:
+            return JsonResponse({"error": "Admin can't access this data"}, status=400)
 
 class ModifyShortlisted(APIView):
     def patch(self, request):
@@ -1671,5 +1677,25 @@ class HRUserChattingAPI(APIView):
             hr_chatting = HRUserChatting.objects.filter(id__in=hr_chatting_ids)
             hr_chatting.update(is_read=True)
             return Response({"message": "Chats marked as read"}, status=200)
+        except Exception as e:
+            return Response({"error": str(e)}, status=500)
+
+class AdminUserData(APIView):
+    def get(self, request):
+        try:
+            # Prefetch events through UserProfile → Event
+            event_prefetch = Prefetch(
+                "user_company__user_events",
+                queryset=Event.objects.all(),
+                to_attr="all_events"
+            )
+
+            company_list = Company.objects.annotate(
+                total_events=Count("user_company__user_events", distinct=True)
+            ).prefetch_related(event_prefetch)
+
+            serializer = CompanySerializer(company_list, many=True)
+            return Response(serializer.data, status=200)
+
         except Exception as e:
             return Response({"error": str(e)}, status=500)

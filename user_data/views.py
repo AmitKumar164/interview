@@ -1,5 +1,5 @@
 from rest_framework.views import APIView
-from .serializers import SignupSerializer, RegisterInterviewerSerializer
+from .serializers import SignupSerializer, RegisterInterviewerSerializer, RegisterHRSerializer
 from django.http import JsonResponse
 import random
 from django.core.cache import cache
@@ -109,28 +109,28 @@ class VerifyOtpView(APIView):
             "token_type": "Bearer"
         }, status=200)
 
-class UserDataView(APIView):
-    def get(self, request):
-        user_type = request.query_params.get("user_type")
+# class UserDataView(APIView):
+#     def get(self, request):
+#         user_type = request.query_params.get("user_type")
 
-        if not user_type:
-            users = UserProfile.objects.select_related("user", "company_name").filter(user__is_active=True)
-        else:
-            users = UserProfile.objects.select_related("user", "company_name").filter(user_type=user_type, user__is_active=True)
+#         if not user_type:
+#             users = UserProfile.objects.select_related("user", "company_name").filter(user__is_active=True)
+#         else:
+#             users = UserProfile.objects.select_related("user", "company_name").filter(user_type=user_type, user__is_active=True)
 
-        data = [
-            {
-                "first_name": user.user.first_name,
-                "last_name": user.user.last_name,
-                "userprofile_id": user.id,
-                "user_type": user.user_type,
-                "company_name": user.company_name.name if user.company_name else None,
-                "company_id": user.company_name.id if user.company_name else None,
-            }
-            for user in users
-        ]
+#         data = [
+#             {
+#                 "first_name": user.user.first_name,
+#                 "last_name": user.user.last_name,
+#                 "userprofile_id": user.id,
+#                 "user_type": user.user_type,
+#                 "company_name": user.company_name.name if user.company_name else None,
+#                 "company_id": user.company_name.id if user.company_name else None,
+#             }
+#             for user in users
+#         ]
 
-        return JsonResponse({"users": data}, status=200)
+#         return JsonResponse({"users": data}, status=200)
 
 class FetchUserView(APIView):
     def get(self, request):
@@ -435,10 +435,16 @@ class AddCompanyView(APIView):
     def post(self, request):
         try:
             company_name = request.data.get("company_name")
+            description = request.data.get("description", "")
+            address = request.data.get("address", "")
+            logo = request.data.get("logo", "")
+            s3_url = ''
+            if logo:
+                s3_url = upload_base64_to_s3(logo, "company_logos/", "png")
             if not company_name:
                 return JsonResponse({"error": "company_name is required"}, status=400)
 
-            company = Company.objects.create(name=company_name)
+            company = Company.objects.create(name=company_name, description=description, address=address, logo=s3_url)
             return JsonResponse({"message": "Company added successfully"}, status=201)
 
         except Exception as e:
@@ -450,7 +456,64 @@ class AddCompanyView(APIView):
             {
                 "id": company.id,
                 "name": company.name,
+                "description": company.description or "",
+                "address": company.address or "",
+                "logo": company.logo or "",
             }
             for company in companies
         ]
+        return JsonResponse({"companies": data}, status=200)
+
+
+class RegisterHR(APIView):
+    def post(self, request):
+        try:
+            serializer = RegisterHRSerializer(
+                data=request.data,
+                context={"request": request}
+            )
+
+            if serializer.is_valid():
+                user_profile = serializer.save()
+
+                return JsonResponse({
+                    "message": "HR registered successfully",
+                    "user_id": user_profile.id,
+                    "email": user_profile.user.email
+                }, status=201)
+
+            # Extract only the first error message (same logic as SignupView)
+            error_value = next(iter(serializer.errors.values()))[0]
+            return JsonResponse({"error": error_value}, status=400)
+
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)
+    
+    def get(self, request):
+        company = Company.objects.get(id=request.query_params.get("company_id"))
+
+        # Fetch all HR profiles for this company
+        hr_profiles = company.user_company.filter(user_type="Hr").select_related("user")
+
+        hr_list = [
+            {
+                "id": hr.id,
+                "first_name": hr.user.first_name,
+                "last_name": hr.user.last_name,
+                "email": hr.user.email,
+                "phone": hr.phone,
+            }
+            for hr in hr_profiles
+        ]
+        data = []
+        data.append({
+            "id": company.id,
+            "name": company.name,
+            "description": company.description or "",
+            "address": company.address or "",
+            "logo": company.logo or "",
+            "hr_count": hr_profiles.count(),
+            "hr_list": hr_list,
+        })
+
         return JsonResponse({"companies": data}, status=200)
