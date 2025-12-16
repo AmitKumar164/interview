@@ -6,6 +6,10 @@ from connectify_bulk_hiring.settings import OTP_TWILIO_ACCOUNT_SID, OTP_TWILIO_A
 client = Client(OTP_TWILIO_ACCOUNT_SID, OTP_TWILIO_AUTH_TOKEN)
 
 def send_otp(phone, otp):
+    phone = str(phone).strip()
+
+    if not phone.startswith("+91"):
+        phone = f"+91{phone.lstrip('0')}"
 
     message = client.messages.create(
         body=f"Connectify: Your OTP is {otp}. Do not share this code. Valid for 10 minutes.",
@@ -14,4 +18,3 @@ def send_otp(phone, otp):
     )
 
     return otp
-
