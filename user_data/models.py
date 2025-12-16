@@ -6,6 +6,8 @@ class Company(models.Model):
     description = models.TextField(blank=True, null=True)
     address = models.TextField(blank=True, null=True)
     logo = models.TextField(blank=True, null=True)
+    gst = models.CharField(max_length=15, blank=True, null=True)
+    pan = models.CharField(max_length=10, blank=True, null=True)
     
     def __str__(self):
         return f"{self.name} - {self.id}"

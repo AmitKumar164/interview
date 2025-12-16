@@ -9,6 +9,7 @@ from event.utils.aws_utils import upload_base64_to_s3
 from event.models import *
 from user_data.services.email_service import send_professional_mail
 from connectify_bulk_hiring.settings import FRONTEND_URL
+from event.utils.sms_utils import send_otp
 '''
 {
   "first_name": "Amit",
@@ -58,13 +59,10 @@ class SendOtpView(APIView):
 
         # Generate 6-digit OTP
         otp = str(random.randint(100000, 999999))
-        otp = "111111"
 
         # Store in cache for 10 minutes (600 seconds)
         cache.set(f"otp_{phone}", otp, timeout=600)
-
-        # TODO: Integrate with SMS gateway to send OTP
-        print(f"OTP for {phone} is {otp}")  # For debugging only
+        send_otp(phone, otp)
 
         return JsonResponse({"message": f"OTP sent successfully {otp}"}, status=200)
 
@@ -438,13 +436,15 @@ class AddCompanyView(APIView):
             description = request.data.get("description", "")
             address = request.data.get("address", "")
             logo = request.data.get("logo", "")
+            gst = request.data.get("gst", "")
+            pan = request.data.get("pan", "")
             s3_url = ''
             if logo:
                 s3_url = upload_base64_to_s3(logo, "company_logos/", "png")
             if not company_name:
                 return JsonResponse({"error": "company_name is required"}, status=400)
 
-            company = Company.objects.create(name=company_name, description=description, address=address, logo=s3_url)
+            company = Company.objects.create(name=company_name, description=description, address=address, logo=s3_url, gst=gst, pan=pan)
             return JsonResponse({"message": "Company added successfully"}, status=201)
 
         except Exception as e:
@@ -459,6 +459,8 @@ class AddCompanyView(APIView):
                 "description": company.description or "",
                 "address": company.address or "",
                 "logo": company.logo or "",
+                "gst": company.gst or "",
+                "pan": company.pan or ""
             }
             for company in companies
         ]
